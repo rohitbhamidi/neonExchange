@@ -1,0 +1,48 @@
+# Byte-compiled / optimized / DLL files
+**/__pycache__/
+**/*.py[cod]
+**/*.pyo
+
+# Virtual environments
+**/.venv/
+**/venv/
+**/frontend/
+
+# pytest cache
+**/.pytest_cache/
+
+# Environment files containing sensitive information
+**/.env
+
+# Jupyter notebooks you don't want tracked
+testing.ipynb
+
+# Log files and application output files
+**/*.log
+**/*.txt
+
+# System files
+.DS_Store
+
+# Ignore the trades data CSV only if you do not want it in the repository
+trades_data.csv
+
+# Node.js dependencies and related files
+**/node_modules/
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+
+# Ignore build files
+**/dist/
+**/build/
+
+# Ignore temporary files and other development artifacts
+**/.idea/
+**/.vscode/
+*.tmp
+*.swp
+*.bak
+*.orig
+*.sass-cache/
+*.eslintcache
