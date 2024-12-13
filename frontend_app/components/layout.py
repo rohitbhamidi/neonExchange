@@ -5,7 +5,7 @@ from frontend_app.components.navbar import navbar
 def serve_layout():
     """
     Serves the main layout for the entire application.
-    Includes a navbar and a main content area that updates based on page routing.
+    Includes a navbar and a main content area.
     """
     return html.Div(
         children=[

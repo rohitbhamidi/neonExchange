@@ -12,12 +12,10 @@ db_handler = SingleStoreDBHandler(Config.SINGLESTORE_DB_URL)
 def layout():
     """
     Layout for the Analytics page.
-    Shows various analytics charts and a download button for CSV reports.
     """
     return html.Div(
         children=[
             html.H2("Analytics Dashboard", style={"marginBottom": "20px"}),
-
             html.Div(
                 children=[
                     html.Label("Filter by Ticker(s):", style={"display": "block"}),
@@ -77,37 +75,33 @@ def layout():
     Input('analytics-ticker-input', 'value')
 )
 def update_analytics(n_clicks, ticker_value):
-    """
-    Update the analytics charts and latest events display based on the selected tickers.
-    """
     if ticker_value:
         tickers = [t.strip().upper() for t in ticker_value.split(",") if t.strip()]
     else:
         tickers = ["AAPL"]
 
-    # Aggregated data
     agg_data = db_handler.fetch_aggregated_data(tickers)
     df_agg = pd.DataFrame(agg_data, columns=["ticker", "avg_size", "trade_count"])
     if df_agg.empty:
         df_agg = pd.DataFrame({"ticker": [], "avg_size": [], "trade_count": []})
 
-    # Average trade volume (size) per ticker
     fig_avg_vol = px.bar(df_agg, x="ticker", y="avg_size", title="Average Trade Volume per Ticker")
-    fig_avg_vol.update_layout(template="plotly_dark", margin=dict(l=20, r=20, t=50, b=20))
+    fig_avg_vol.update_layout(template="plotly_dark", paper_bgcolor="#121212", plot_bgcolor="#121212")
 
-    # Most traded tickers by count
     df_order = df_agg.sort_values(by="trade_count", ascending=False)
     fig_most_traded = px.bar(df_order, x="ticker", y="trade_count", title="Most Traded Tickers")
-    fig_most_traded.update_layout(template="plotly_dark", margin=dict(l=20, r=20, t=50, b=20))
+    fig_most_traded.update_layout(template="plotly_dark", paper_bgcolor="#121212", plot_bgcolor="#121212")
 
-    # Price trend: fetch some recent data from live_trades
     price_data = db_handler.fetch_live_trades(tickers, limit=500)
     df_price = pd.DataFrame(price_data, columns=["localTS", "ticker", "price", "size", "exchange"])
     df_price.sort_values(by="localTS", inplace=True)
-    fig_price_trend = px.line(df_price, x="localTS", y="price", color="ticker", title="Price Trend")
-    fig_price_trend.update_layout(template="plotly_dark", margin=dict(l=20, r=20, t=50, b=20))
+    if df_price.empty:
+        fig_price_trend = px.line(title="No Price Data")
+        fig_price_trend.update_layout(template="plotly_dark", paper_bgcolor="#121212", plot_bgcolor="#121212")
+    else:
+        fig_price_trend = px.line(df_price, x="localTS", y="price", color="ticker", title="Price Trend")
+        fig_price_trend.update_layout(template="plotly_dark", paper_bgcolor="#121212", plot_bgcolor="#121212")
 
-    # Latest ticker events
     events_data = db_handler.fetch_latest_events(tickers, limit=20)
     df_events = pd.DataFrame(events_data, columns=["ticker", "event_date", "event_type", "name"])
     if df_events.empty:
@@ -118,14 +112,13 @@ def update_analytics(n_clicks, ticker_value):
             events_rows.append(html.Div(f"{row['event_date']}: {row['ticker']} - {row['event_type']} ({row['name']})", style={"marginBottom": "5px"}))
         events_content = html.Div(events_rows)
 
-    # Exchange distribution
     exchange_data = db_handler.fetch_exchange_distribution(tickers)
     df_exchange = pd.DataFrame(exchange_data, columns=["ticker", "exchange", "count_ex"])
     if df_exchange.empty:
         fig_exchange_dist = px.bar(title="No Data for Exchange Distribution")
     else:
         fig_exchange_dist = px.bar(df_exchange, x="ticker", y="count_ex", color="exchange", barmode='stack', title="Trade Distribution by Exchange")
-    fig_exchange_dist.update_layout(template="plotly_dark", margin=dict(l=20, r=20, t=50, b=20))
+    fig_exchange_dist.update_layout(template="plotly_dark", paper_bgcolor="#121212", plot_bgcolor="#121212")
 
     return fig_avg_vol, fig_most_traded, fig_price_trend, events_content, fig_exchange_dist
 
@@ -136,9 +129,6 @@ def update_analytics(n_clicks, ticker_value):
     prevent_initial_call=True
 )
 def download_analytics(n_clicks, ticker_value):
-    """
-    Download analytics data as CSV.
-    """
     if ticker_value:
         tickers = [t.strip().upper() for t in ticker_value.split(",") if t.strip()]
     else:

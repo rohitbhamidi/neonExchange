@@ -13,12 +13,9 @@ class SingleStoreDBHandler:
         """
         return s2.connect(self.db_url)
 
-    def fetch_live_trades(self, tickers, limit=100):
+    def fetch_live_trades(self, tickers, limit=200):
         """
         Fetch latest live trades for given tickers.
-        :param tickers: list of tickers to filter by
-        :param limit: maximum number of records to return
-        :return: list of tuples representing trade rows
         """
         if not tickers:
             return []
@@ -38,7 +35,6 @@ class SingleStoreDBHandler:
                 rows = cur.fetchall()
             return rows
         except Exception:
-            # Handle errors gracefully
             return []
         finally:
             conn.close()
@@ -46,12 +42,10 @@ class SingleStoreDBHandler:
     def fetch_aggregated_data(self, tickers):
         """
         Fetch aggregated analytics data for given tickers from the live_trades table.
-        Example: average trade volume per ticker over a recent time period.
         """
         if not tickers:
             return []
 
-        # Example aggregation: average size grouped by ticker
         query = """
             SELECT ticker, AVG(size) as avg_size, COUNT(*) as trade_count
             FROM live_trades
@@ -73,7 +67,6 @@ class SingleStoreDBHandler:
     def fetch_exchange_distribution(self, tickers):
         """
         Fetch distribution of trades by exchange for selected tickers.
-        Returns grouped count by ticker and exchange.
         """
         if not tickers:
             return []
