@@ -6,7 +6,9 @@
 # Virtual environments
 **/.venv/
 **/venv/
-**/frontend/
+
+# Shell scripts
+**/*.sh
 
 # pytest cache
 **/.pytest_cache/
