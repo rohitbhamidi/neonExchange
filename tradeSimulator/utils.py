@@ -22,7 +22,16 @@ def get_data_from_s2db(file_path: str) -> None:
         
         # Load data from SingleStore
         df = pd.read_sql_query(
-            "SELECT * FROM trades LIMIT 5000",
+            """SELECT * FROM trades WHERE ticker = 'AAPL' LIMIT 10000
+            UNION ALL
+            SELECT * FROM trades WHERE ticker = 'MSFT' LIMIT 10000
+            UNION ALL
+            SELECT * FROM trades WHERE ticker = 'NVDA' LIMIT 10000
+            UNION ALL
+            SELECT * FROM trades WHERE ticker = 'TSLA' LIMIT 10000
+            UNION ALL
+            SELECT * FROM trades WHERE ticker = 'AMZN' LIMIT 10000;
+            """,
             conn
         )
         

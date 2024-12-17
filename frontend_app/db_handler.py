@@ -1,4 +1,5 @@
 import singlestoredb as s2
+from datetime import datetime, timedelta
 
 class SingleStoreDBHandler:
     """
@@ -8,107 +9,89 @@ class SingleStoreDBHandler:
         self.db_url = db_url
 
     def create_connection(self):
-        """
-        Creates and returns a new database connection.
-        """
         return s2.connect(self.db_url)
 
     def fetch_live_trades(self, tickers, limit=200):
         """
-        Fetch latest live trades for given tickers.
+        Fetch latest trades for given tickers from live_trades.
         """
         if not tickers:
             return []
-
-        query = """
+        query = f"""
             SELECT localTS, ticker, price, size, exchange
             FROM live_trades
-            WHERE ticker IN ({})
+            WHERE ticker IN ({",".join(["%s"] * len(tickers))})
             ORDER BY localTS DESC
-            LIMIT {}
-        """.format(",".join(["%s"] * len(tickers)), limit)
-
+            LIMIT {limit}
+        """
         conn = self.create_connection()
         try:
             with conn.cursor() as cur:
                 cur.execute(query, tickers)
                 rows = cur.fetchall()
             return rows
-        except Exception:
+        except:
             return []
         finally:
             conn.close()
 
     def fetch_aggregated_data(self, tickers):
-        """
-        Fetch aggregated analytics data for given tickers from the live_trades table.
-        """
         if not tickers:
             return []
-
-        query = """
+        query = f"""
             SELECT ticker, AVG(size) as avg_size, COUNT(*) as trade_count
             FROM live_trades
-            WHERE ticker IN ({})
+            WHERE ticker IN ({",".join(["%s"] * len(tickers))})
             GROUP BY ticker
-        """.format(",".join(["%s"] * len(tickers)))
-
+        """
         conn = self.create_connection()
         try:
             with conn.cursor() as cur:
                 cur.execute(query, tickers)
                 rows = cur.fetchall()
             return rows
-        except Exception:
+        except:
             return []
         finally:
             conn.close()
 
     def fetch_exchange_distribution(self, tickers):
-        """
-        Fetch distribution of trades by exchange for selected tickers.
-        """
         if not tickers:
             return []
-
-        query = """
+        query = f"""
             SELECT ticker, exchange, COUNT(*) as count_ex
             FROM live_trades
-            WHERE ticker IN ({})
+            WHERE ticker IN ({",".join(["%s"] * len(tickers))})
             GROUP BY ticker, exchange
-        """.format(",".join(["%s"] * len(tickers)))
-
+        """
         conn = self.create_connection()
         try:
             with conn.cursor() as cur:
                 cur.execute(query, tickers)
                 rows = cur.fetchall()
             return rows
-        except Exception:
+        except:
             return []
         finally:
             conn.close()
 
     def fetch_latest_events(self, tickers, limit=20):
-        """
-        Fetch the latest ticker events for selected tickers.
-        """
         if not tickers:
             return []
-        query = """
+        query = f"""
             SELECT ticker, event_date, event_type, name
             FROM ticker_events
-            WHERE ticker IN ({})
+            WHERE ticker IN ({",".join(["%s"] * len(tickers))})
             ORDER BY event_date DESC
-            LIMIT {}
-        """.format(",".join(["%s"] * len(tickers)), limit)
+            LIMIT {limit}
+        """
         conn = self.create_connection()
         try:
             with conn.cursor() as cur:
                 cur.execute(query, tickers)
                 rows = cur.fetchall()
             return rows
-        except Exception:
+        except:
             return []
         finally:
             conn.close()

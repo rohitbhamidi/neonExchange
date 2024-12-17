@@ -1,14 +1,27 @@
 import dash
 from dash import html, dcc
 import dash_bootstrap_components as dbc
-from frontend_app.components.layout import serve_layout
-from frontend_app.pages import realtime_trading, analytics
+import logging
+from frontend_app.config import Config
+from frontend_app.components.sidebar import sidebar
+from frontend_app.pages import realtime, analytics
 
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], 
-                suppress_callback_exceptions=True, 
-                title="Stocks Dashboard")
+logging.basicConfig(level=logging.INFO)
 
-app.layout = serve_layout()
+app = dash.Dash(
+    __name__, 
+    external_stylesheets=[dbc.themes.BOOTSTRAP],
+    suppress_callback_exceptions=True,
+    title="Modernized Trading Dashboard"
+)
+
+app.layout = html.Div(
+    children=[
+        dcc.Location(id='url', refresh=False),
+        sidebar(),
+        html.Div(id='page-content', style={"marginLeft":"220px","padding":"20px"})
+    ]
+)
 
 @app.callback(
     dash.Output('page-content', 'children'),
@@ -16,11 +29,12 @@ app.layout = serve_layout()
 )
 def display_page(pathname):
     if pathname == '/realtime':
-        return realtime_trading.layout()
+        return realtime.layout()
     elif pathname == '/analytics':
         return analytics.layout()
     else:
-        return realtime_trading.layout()
+        # Default to Real-time if none selected
+        return realtime.layout()
 
 if __name__ == '__main__':
     app.run_server(debug=True, host="0.0.0.0", port=8050)

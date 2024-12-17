@@ -1,0 +1,185 @@
+/* Import Montserrat font */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap');
+
+body {
+    background-color: #1C1B1E;
+    color: #E0E0E0;
+    font-family: 'Montserrat', sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* Sidebar Styling */
+.sidebar {
+    background-color: #1C1B1E;
+    width: 220px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding-top: 20px;
+    position: fixed;
+    top:0; left:0;
+    border-right: 1px solid #2A292F;
+}
+
+.sidebar .nav-link {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    color: #E0E0E0;
+    font-size: 14px;
+    text-decoration: none;
+    transition: background 0.3s;
+}
+
+.sidebar .nav-link:hover {
+    background: #27262C;
+    color: #FFFFFF;
+    cursor: pointer;
+}
+
+.sidebar .nav-link.active {
+    background: linear-gradient(to right, #7A45D1, #A980FF);
+    color: #FFFFFF;
+}
+
+.sidebar .nav-link i {
+    margin-right: 10px;
+}
+
+/* Tooltip styling */
+.tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 120px;
+    background: #27262C;
+    color: #FFFFFF;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px;
+    font-size: 12px;
+    position: absolute;
+    z-index: 1;
+    left: 105%;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+}
+
+/* Page content styling (with sidebar) */
+.page-content {
+    margin-left: 220px;
+    padding: 20px;
+}
+
+/* Cards */
+.metric-card {
+    background: #27262C;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+.metric-card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+}
+.metric-card .metric-title {
+    font-size: 14px;
+    color: #A980FF;
+    margin-bottom: 5px;
+}
+.metric-card .metric-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #FFFFFF;
+}
+
+/* Charts */
+.chart-container {
+    background: #27262C;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+/* Table styling */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #1C1B1E;
+}
+.data-table th, .data-table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #2A292F;
+    font-size: 14px;
+}
+.data-table tbody tr:nth-child(odd) {
+    background: #27262C;
+}
+.data-table tbody tr:hover {
+    background: #2F2E34;
+    cursor: pointer;
+}
+
+/* Buttons */
+.download-btn {
+    background: #7A45D1;
+    color: #FFFFFF;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 14px;
+    transition: background 0.3s;
+}
+.download-btn:hover {
+    background: #6939B1;
+}
+
+/* Dropdown and input styling */
+.filter-section {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.filter-section label {
+    margin-right: 10px;
+    font-size: 14px;
+}
+
+.filter-dropdown, .filter-input {
+    padding: 6px;
+    border: 1px solid #2A292F;
+    background: #27262C;
+    color: #FFFFFF;
+    border-radius: 4px;
+    margin-right: 10px;
+    font-size: 14px;
+}
+
+.filter-dropdown:hover, .filter-input:hover {
+    background: #2F2E34;
+}
+
+/* Responsive */
+@media only screen and (max-width: 768px) {
+    .sidebar {
+        position: relative;
+        width: 100%;
+        height: auto;
+        border-right: none;
+    }
+    .page-content {
+        margin-left: 0;
+    }
+}
