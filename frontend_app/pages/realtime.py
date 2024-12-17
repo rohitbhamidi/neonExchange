@@ -5,7 +5,6 @@ from frontend_app.db_handler import SingleStoreDBHandler
 from frontend_app.config import Config
 import plotly.graph_objects as go
 import logging
-from datetime import datetime
 
 db_handler = SingleStoreDBHandler(Config.SINGLESTORE_DB_URL)
 logger = logging.getLogger(__name__)
@@ -28,6 +27,7 @@ def layout():
                 className="filter-section",
                 children=[
                     html.Label("Ticker:", style={"color":"#E0E0E0"}),
+                    # Default ticker now AAPL
                     dcc.Input(id='realtime-ticker-input', type='text', value='AAPL', className='filter-input', placeholder='e.g. AAPL'),
                     html.Button("Update", id='realtime-update-button', className='download-btn', n_clicks=0)
                 ]
@@ -82,18 +82,20 @@ def layout():
 def update_realtime_chart(n_intervals, n_clicks, ticker_value):
     ticker_value = ticker_value.strip().upper() if ticker_value else "AAPL"
     logger.info(f"Fetching real-time trades for {ticker_value}")
-    data = db_handler.fetch_live_trades([ticker_value], limit=2000)
+
+    # Increase limit to show a longer historical window, e.g. 1000 trades
+    data = db_handler.fetch_live_trades([ticker_value], limit=1000)
     if not data:
         fig = go.Figure()
         fig.update_layout(template="plotly_dark",paper_bgcolor="#1C1B1E",plot_bgcolor="#1C1B1E",title="No Data Available")
+        fig.update_xaxes(tickformat="%H:%M")
         return fig, "N/A", "0"
 
     df = pd.DataFrame(data, columns=["localTS","ticker","price","size","exchange"])
     df.sort_values(by="localTS", inplace=True)
-
-    # Compute RSI as a key technical indicator
     df['price'] = df['price'].astype(float)
     df['RSI'] = compute_rsi(df['price'])
+
     latest_price = df['price'].iloc[-1]
 
     # Key metrics
@@ -102,7 +104,7 @@ def update_realtime_chart(n_intervals, n_clicks, ticker_value):
     recent_trades = df[df["localTS"] >= window_start]
     total_trades_10s = len(recent_trades)
 
-    # Line chart with RSI as a secondary y-axis
+    # Line chart with RSI as secondary y-axis, linear shape, no markers, smooth transition
     fig = go.Figure()
     fig.add_trace(
         go.Scatter(
@@ -124,6 +126,9 @@ def update_realtime_chart(n_intervals, n_clicks, ticker_value):
         )
     )
 
+    # Format time to only show hour:minute
+    fig.update_xaxes(tickformat="%H:%M")
+
     fig.update_layout(
         template="plotly_dark",
         paper_bgcolor="#1C1B1E",
@@ -131,7 +136,8 @@ def update_realtime_chart(n_intervals, n_clicks, ticker_value):
         margin=dict(l=20,r=20,t=50,b=20),
         xaxis=dict(showgrid=False),
         yaxis=dict(title='Price', showgrid=False),
-        yaxis2=dict(title='RSI', overlaying='y', side='right', showgrid=False)
+        yaxis2=dict(title='RSI', overlaying='y', side='right', showgrid=False),
+        transition=dict(duration=500)  # smooth transition
     )
 
     return fig, f"{latest_price:.2f}", str(total_trades_10s)

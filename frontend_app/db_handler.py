@@ -1,9 +1,9 @@
 import singlestoredb as s2
-from datetime import datetime, timedelta
 
 class SingleStoreDBHandler:
     """
     Database handler for SingleStore. Provides methods to query the database.
+    Modified to handle limit=None for full history fetch.
     """
     def __init__(self, db_url: str):
         self.db_url = db_url
@@ -14,20 +14,33 @@ class SingleStoreDBHandler:
     def fetch_live_trades(self, tickers, limit=200):
         """
         Fetch latest trades for given tickers from live_trades.
+        If limit is None, fetch full history (no LIMIT clause).
         """
         if not tickers:
             return []
-        query = f"""
-            SELECT localTS, ticker, price, size, exchange
-            FROM live_trades
-            WHERE ticker IN ({",".join(["%s"] * len(tickers))})
-            ORDER BY localTS DESC
-            LIMIT {limit}
-        """
+        placeholders = ",".join(["%s"] * len(tickers))
+        if limit is None:
+            query = f"""
+                SELECT localTS, ticker, price, size, exchange
+                FROM live_trades
+                WHERE ticker IN ({placeholders})
+                ORDER BY localTS
+            """
+            params = tickers
+        else:
+            query = f"""
+                SELECT localTS, ticker, price, size, exchange
+                FROM live_trades
+                WHERE ticker IN ({placeholders})
+                ORDER BY localTS
+                LIMIT {limit}
+            """
+            params = tickers
+
         conn = self.create_connection()
         try:
             with conn.cursor() as cur:
-                cur.execute(query, tickers)
+                cur.execute(query, params)
                 rows = cur.fetchall()
             return rows
         except:
