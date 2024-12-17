@@ -21,7 +21,6 @@ testing.ipynb
 
 # Log files and application output files
 **/*.log
-**/*.txt
 
 # System files
 .DS_Store
