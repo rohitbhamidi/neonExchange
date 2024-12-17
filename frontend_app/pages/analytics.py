@@ -19,14 +19,17 @@ def layout():
                 className="filter-section",
                 children=[
                     html.Label("Tickers:", style={"color":"#E0E0E0"}),
-                    # Default ticker is AAPL as requested
-                    dcc.Input(id='analytics-ticker-input', type='text', value='AAPL', className='filter-input', placeholder='e.g. AAPL, MSFT'),
+                    dcc.Input(
+                        id='analytics-ticker-input', 
+                        type='text', 
+                        value='AAPL', # Default ticker as requested
+                        className='filter-input', 
+                        placeholder='e.g. AAPL, MSFT'
+                    ),
                     html.Button("Update", id='analytics-update-button', className='download-btn', n_clicks=0),
                     html.Button("Download CSV", id="analytics-download-button", className='download-btn', style={"marginLeft":"10px"})
                 ]
             ),
-            # Now display the four graphs in a 2x2 format
-            # Row 1: Average Trade Volume (left), Most Traded (right)
             dbc.Row([
                 dbc.Col(
                     html.Div(
@@ -50,7 +53,6 @@ def layout():
                 )
             ], style={"marginBottom":"20px"}),
 
-            # Row 2: Price Trend (left), Trade Distribution (right)
             dbc.Row([
                 dbc.Col(
                     html.Div(
@@ -74,7 +76,6 @@ def layout():
                 )
             ], style={"marginBottom":"20px"}),
 
-            # Below the 2x2 layout, display the Latest Ticker Events table
             html.Div(
                 className="chart-container",
                 children=[
@@ -93,9 +94,12 @@ def layout():
     Output('analytics-latest-events', 'children'),
     Output('analytics-exchange-distribution-chart', 'figure'),
     Input('analytics-update-button', 'n_clicks'),
-    Input('analytics-ticker-input', 'value')
+    State('analytics-ticker-input', 'value')
 )
 def update_analytics(n_clicks, ticker_value):
+    """
+    Update the analytics charts and table only when the user clicks the 'Update' button.
+    """
     ticker_value = ticker_value.strip().upper() if ticker_value else "AAPL"
     tickers = [t.strip().upper() for t in ticker_value.split(",") if t.strip()]
 
@@ -109,7 +113,7 @@ def update_analytics(n_clicks, ticker_value):
     else:
         fig_avg_vol = px.bar(df_agg, x="ticker", y="avg_size", title="Average Trade Volume")
         fig_avg_vol.update_traces(marker_color="#7A45D1")
-    fig_avg_vol.update_layout(template="plotly_dark",paper_bgcolor="#1C1B1E",plot_bgcolor="#1C1B1E")
+    fig_avg_vol.update_layout(template="plotly_dark", paper_bgcolor="#1C1B1E", plot_bgcolor="#1C1B1E")
     fig_avg_vol.update_xaxes(tickformat="%H:%M")
 
     # Most Traded Tickers
@@ -119,20 +123,19 @@ def update_analytics(n_clicks, ticker_value):
     else:
         fig_most_traded = px.bar(df_order, x="ticker", y="trade_count", title="Most Traded Tickers")
         fig_most_traded.update_traces(marker_color="#A980FF")
-    fig_most_traded.update_layout(template="plotly_dark",paper_bgcolor="#1C1B1E",plot_bgcolor="#1C1B1E")
+    fig_most_traded.update_layout(template="plotly_dark", paper_bgcolor="#1C1B1E", plot_bgcolor="#1C1B1E")
     fig_most_traded.update_xaxes(tickformat="%H:%M")
 
-    # Price Trend: fetch full history by passing limit=None
+    # Price Trend: fetch full history
     price_data = db_handler.fetch_live_trades(tickers, limit=None)
     df_price = pd.DataFrame(price_data, columns=["localTS","ticker","price","size","exchange"]) if price_data else pd.DataFrame()
     if df_price.empty:
         fig_price_trend = px.line(title="No Price Data")
     else:
         df_price['price'] = df_price['price'].astype(float)
-        # Sort by ticker then time to ensure lines are continuous
         df_price.sort_values(["ticker","localTS"], inplace=True)
         fig_price_trend = px.line(df_price, x="localTS", y="price", color="ticker", title="Price Trend", line_shape='linear')
-    fig_price_trend.update_layout(template="plotly_dark",paper_bgcolor="#1C1B1E",plot_bgcolor="#1C1B1E")
+    fig_price_trend.update_layout(template="plotly_dark", paper_bgcolor="#1C1B1E", plot_bgcolor="#1C1B1E")
     fig_price_trend.update_xaxes(tickformat="%H:%M")
 
     # Latest Events
@@ -164,7 +167,7 @@ def update_analytics(n_clicks, ticker_value):
         fig_exchange_dist = px.bar(title="No Data")
     else:
         fig_exchange_dist = px.bar(df_exchange, x="ticker", y="count_ex", color="exchange", barmode="stack", title="Trade Distribution by Exchange")
-    fig_exchange_dist.update_layout(template="plotly_dark",paper_bgcolor="#1C1B1E",plot_bgcolor="#1C1B1E")
+    fig_exchange_dist.update_layout(template="plotly_dark", paper_bgcolor="#1C1B1E", plot_bgcolor="#1C1B1E")
     fig_exchange_dist.update_xaxes(tickformat="%H:%M")
 
     return fig_avg_vol, fig_most_traded, fig_price_trend, events_content, fig_exchange_dist
@@ -177,7 +180,7 @@ def update_analytics(n_clicks, ticker_value):
 )
 def download_analytics(n_clicks, ticker_value):
     """
-    CSV is now only downloaded when the download button is clicked.
+    CSV is only downloaded when the download button is clicked.
     """
     ticker_value = ticker_value.strip().upper() if ticker_value else "AAPL"
     tickers = [t.strip().upper() for t in ticker_value.split(",") if t.strip()]
