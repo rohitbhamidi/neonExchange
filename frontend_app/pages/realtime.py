@@ -27,7 +27,7 @@ def layout():
                 className="filter-section",
                 children=[
                     html.Label("Ticker:", style={"color":"#E0E0E0"}),
-                    # Default ticker is AAPL as requested
+                    # Default ticker: AAPL
                     dcc.Input(id='realtime-ticker-input', type='text', value='AAPL', className='filter-input', placeholder='e.g. AAPL'),
                     html.Button("Update", id='realtime-update-button', className='download-btn', n_clicks=0)
                 ]
@@ -42,7 +42,7 @@ def layout():
                             dcc.Graph(id='realtime-price-chart', style={"height":"400px"}),
                             dcc.Interval(
                                 id='realtime-interval',
-                                interval=Config.UPDATE_INTERVAL_MS, 
+                                interval=Config.UPDATE_INTERVAL_MS,
                                 n_intervals=0
                             )
                         ]
@@ -83,27 +83,19 @@ def update_realtime_chart(n_intervals, n_clicks, ticker_value):
     ticker_value = ticker_value.strip().upper() if ticker_value else "AAPL"
     logger.info(f"Fetching real-time trades for {ticker_value}")
 
-    # Revert to limit=300 as before to prevent "Insufficient Data" issues caused by overly large windows.
+    # Fetch up to 300 trades
     data = db_handler.fetch_live_trades([ticker_value], limit=300)
     if not data:
+        # No data at all
         fig = go.Figure()
-        fig.update_layout(template="plotly_dark",paper_bgcolor="#1C1B1E",plot_bgcolor="#1C1B1E",title="No Data Available")
+        fig.update_layout(template="plotly_dark", paper_bgcolor="#1C1B1E", plot_bgcolor="#1C1B1E", title="No Data Available")
         return fig, "N/A", "0"
 
     df = pd.DataFrame(data, columns=["localTS","ticker","price","size","exchange"])
-    # Convert localTS to datetime
     df['localTS'] = pd.to_datetime(df['localTS'])
     df.sort_values(by="localTS", inplace=True)
     df['price'] = df['price'].astype(float)
     df['RSI'] = compute_rsi(df['price'])
-
-    # If there's not enough variation in time or only one data point:
-    if df['localTS'].nunique() < 2:
-        fig = go.Figure()
-        fig.update_layout(template="plotly_dark",paper_bgcolor="#1C1B1E",plot_bgcolor="#1C1B1E",title="Insufficient Data")
-        latest_price = df['price'].iloc[-1] if not df.empty else "N/A"
-        total_trades_10s = 0
-        return fig, f"{latest_price:.2f}" if latest_price != "N/A" else "N/A", str(total_trades_10s)
 
     latest_price = df['price'].iloc[-1]
     latest_time = df["localTS"].max()
@@ -111,7 +103,7 @@ def update_realtime_chart(n_intervals, n_clicks, ticker_value):
     recent_trades = df[df["localTS"] >= window_start]
     total_trades_10s = len(recent_trades)
 
-    # Create line chart with RSI
+    # Plot all available data as a line chart.
     fig = go.Figure()
     fig.add_trace(
         go.Scatter(
@@ -137,7 +129,7 @@ def update_realtime_chart(n_intervals, n_clicks, ticker_value):
         template="plotly_dark",
         paper_bgcolor="#1C1B1E",
         plot_bgcolor="#1C1B1E",
-        margin=dict(l=20,r=20,t=50,b=20),
+        margin=dict(l=20, r=20, t=50, b=20),
         xaxis=dict(showgrid=False),
         yaxis=dict(title='Price', showgrid=False),
         yaxis2=dict(title='RSI', overlaying='y', side='right', showgrid=False),
