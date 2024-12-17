@@ -25,9 +25,6 @@ testing.ipynb
 # System files
 .DS_Store
 
-# Ignore the trades data CSV only if you do not want it in the repository
-trades_data.csv
-
 # Node.js dependencies and related files
 **/node_modules/
 **/npm-debug.log*
